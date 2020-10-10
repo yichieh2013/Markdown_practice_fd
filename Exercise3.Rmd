@@ -23,7 +23,6 @@ Computer and Math Sciences            75,000
 Psychology                            66,700
 Sociology and Anthropology            63,100
 
-https://media.cheggcdn.com/study/987/987f544f-8b95-433a-bde8-b040d801ad44/7780-3-3QPEI1.png
 ```{r}
 Category <- c("Chemistry",
               "Computer and Math Sciences",
