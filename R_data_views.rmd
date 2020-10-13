@@ -1,0 +1,141 @@
+---
+title: "TeachR2_Graph"
+author: "Cattell"
+date: "2020/10/21"
+output:
+  html_document:
+    df_print: paged
+  toc: yes
+  toc_depth: 2
+  pdf_document: default
+  html_notebook: 
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE, echo=FALSE}
+# # general visualisation
+# library('ggplot2') # visualisation
+# library('scales') # visualisation
+# library('corrplot') # visualisation
+# library('plotly')
+# 
+# # Date + forecast
+# library('lubridate') # date and time
+# library('forecast') # time series analysis
+# 
+# #general data manipulation
+# library('tibble') # data wrangling
+# library('purrr') # data wrangling
+# library('stringr') # string manipulation
+# library('dplyr') # data manipulation
+# library('tidyr') # data manipulation
+# 
+# #forecast and fpp2
+# library('fma')
+# library('expsmooth')
+# library('fpp2')
+```
+
+
+### 1.北美主要河流的長度
+# rivers
+根據美國地質調查局的數據，該數據集給出了北美141條“主要”河流的長度（以英里為單位）。
+```{r}
+plot(rivers)
+str(rivers)
+hist(rivers)
+```
+
+
+### 2. Co2 逐年上升的狀況
+### 採用plot ，還是增加程度(圖2)
+# co2
+冒納羅亞火山大氣二氧化碳濃度
+大氣中的二氧化碳濃度以百萬分率（ppm）表示，並以1997年SIO測壓式摩爾分數的初步規模進行報告。
+```{r }
+library('dplyr') # data manipulation
+plot(co2)
+str(co2)
+co2 %>% diff() %>% hist(20)
+```
+
+
+### 3. 製作一個time-series dataset，使用間歇泉的資料
+# faithful
+在美國懷俄明州黃石國家公園的間歇泉資料，關於噴發的持續時間，以及兩次噴發之間的等待時間
+```{r}
+# 間歇泉資料的優點，真正的隨機
+library('dplyr') # data manipulation
+plot(faithful)
+str(faithful)
+faithful %>% select(waiting) %>% ts() %>%  plot()
+faithful %>% select(waiting) %>% ts(frequency = 12,start=c(2000,1)) %>% plot()
+cor(faithful)
+```
+
+
+### 4. 製作一個 table，考驗Titanic船難時先救女人與小孩
+# Titanic
+該數據集提供了有關“泰坦尼克號”遠洋客輪致命航程的乘客命運信息，並根據經濟狀況（階級），性別，年齡和生存情況進行了匯總。
+```{r}
+library('dplyr') # data manipulation
+plot(Titanic)
+str(Titanic)
+Titanic
+fit1 <- Titanic %>% 
+  as.data.frame() %>% 
+  lm(formula=Freq~Age+Class+Sex) 
+summary(fit1)
+plot((Titanic %>%  as.data.frame())[,5] ,ylim =c(0,700))
+par(new=TRUE)
+plot(predict(fit1),col="red",ylim =c(0,700))
+```
+
+
+### 5. 壓力與溫度的關係
+# pressure
+以攝氏度為單位的溫度與以毫米（汞）為單位的汞蒸氣壓之間的關係數據。
+```{r message=TRUE}
+library('dplyr') # data manipulation
+plot(pressure)
+str(pressure)  
+summary(pressure)
+pressure[,2] %>% diff() %>% plot()
+
+# tail(pressure[,2],-1)-head(pressure[,2],-1)
+```
+
+
+### 6.誤將分類目的，使用相關法來做
+# beaver1
+兩個海狸的體溫
+Reynolds（1994）描述了在威斯康星州中北部海狸加拿大蓖麻的長期溫度動態研究的一小部分。 對於四隻雌性，每隔10分鐘通過遙測法測量體溫，但在那裡使用的是兩個動物中每隻小於一天的一次數據。
+```{r message=FALSE, warning=TRUE}
+library('dplyr') # data manipulation
+summary(beaver1)
+cc5 <-beaver1 %>% 
+group_by(activ) %>% 
+summarise(tempd = cor(time,temp),.groups = 'drop') 
+cc5
+
+# 看溫度和活動關係
+min_temp1 <- min(beaver1$temp)
+min_temp2 <- min(beaver2$temp)
+max_temp1 <- max(beaver1$temp)
+max_temp2 <- max(beaver2$temp)
+breaks1 <- seq(min_temp1,max_temp1,by=diff(range(beaver1$temp))/7)
+table(cut(beaver1$temp,breaks1),beaver1$activ)
+
+breaks2 <- seq(min_temp2,max_temp2,by=diff(range(beaver2$temp))/7)
+table(cut(beaver2$temp,breaks2),beaver2$activ)
+cor(beaver1$temp,beaver1$activ)
+cor(beaver2$temp,beaver2$activ)
+```
+
+溫度和活動很有關係喔~~~~
