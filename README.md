@@ -1,3 +1,7 @@
+# R_data_views.rmd
+1. 用 R 內部已有的資料練習分析(用cattell的Rmd修改的)
+
+
 # Markdown_practice_fd
 1. 參考書籍  Understanding Statistics
 in the Behavioral Sciences
