@@ -139,3 +139,209 @@ cor(beaver2$temp,beaver2$activ)
 ```
 
 溫度和活動很有關係喔~~~~
+
+### 7.把 iris3 花種分類，使用花瓣或花萼的長度
+這個著名的（費舍爾或安德森氏）虹膜數據集以厘米為單位，分別測量了3種虹膜中每種花的50朵花的萼片長度和寬度以及花瓣的長度和寬度。 該物種是鳶尾鳶尾，雜色和維吉尼亞。
+```{r}
+
+plot(iris3)       
+str(iris3)
+head(iris3)
+#還原iris方式(example)
+dni3 <- dimnames(iris3)
+ii <- data.frame(matrix(aperm(iris3, c(1,3,2)), ncol = 4,
+                        dimnames = list(NULL, sub(" L.",".Length",sub(" W.",".Width", dni3[[2]])))),
+                 Species = gl(3, 50, labels = sub("S", "s", sub("V", "v", dni3[[3]]))))
+all.equal(ii, iris)
+```
+
+
+### 9.用顏色將有效分組，檢查overlap的高低
+用 "Sepal W." "Petal L." 
+用 "Petal L." "Petal W."
+分開種類
+```{r}
+library(ggplot2)
+plot(iris)
+qplot(iris[,2],iris[,3],data=iris,color=factor(iris[,5]))
+qplot(iris[,4],iris[,3],data=iris,color=factor(iris[,5]))
+```
+
+
+### 8.用折線圖進行季節性分析
+a10
+1991年至2008年，澳大利亞每月提供抗糖尿病藥物補貼。
+作為澳大利亞藥品保險計劃記錄的ATC編碼A10下產品的藥品福利計劃的一部分，每月政府支出（百萬美元）。 1991年7月-2008年6月。
+若想比較相同週期的畫圖法
+```{r}
+library('fpp2')
+plot(a10)
+ggseasonplot(a10, year.labels=TRUE, year.labels.left=TRUE) +
+  ylab("$ million") +
+  ggtitle("Seasonal plot: antidiabetic drug sales")
+```
+
+
+### 9.想知道回歸線是直線，可以結合forecast工具
+
+```{r}
+library('fpp2')
+fit01<- nnetar(a10, lambda=0)
+autoplot(forecast(fit01,h=15))
+fit02<- nnetar(pressure[,2], lambda=0)
+autoplot(forecast(fit02,h=15))
+```
+
+
+### 10-1. 提供了1999年和2008年38種流行車型的燃油經濟性數據。
+mpg
+該數據集包含EPA在http://fueleconomy.gov上提供的燃油經濟性數據的子集。 它僅包含在1999年至2008年之間每年都有新版本的車型-用作汽車普及的代名詞。
+
+```{r}
+e <- ggplot(mpg, aes(cty, hwy,color=cty))
+e + geom_point()
+s <- ggplot(mpg, aes(fl, fill = drv)) 
+s + geom_bar(position = "dodge")
+```
+
+
+### 10-2.想知道哪種車名，就使用互動式網頁
+### 不要直接想像圖會如何出現，因為常會讓你嚇一跳
+
+```{r}
+library(plotly)
+plot_ly(mpg, x = ~manufacturer ,type = "bar") 
+plot_ly(mpg, x = ~manufacturer ,type = "histogram") 
+```
+
+
+### 11-1.鑽石克拉數的價格
+diamonds
+超過50,000顆圓形切工鑽石的價格
+觀察重量和價格的關係
+```{r}
+library(plotly)
+h <- ggplot(diamonds, aes(carat, price))
+h + geom_hex()
+```
+
+
+### 11-2.也是使用互動式網頁與動態。例，要找個高價
+### 低克拉的切割面table大小，且生產量也少的鑽石
+
+```{r}
+library(plotly)
+p <- diamonds %>% 
+  ggplot(aes(carat, price)) + 
+  geom_point(aes(size = price, frame = table)) +
+  geom_hex() 
+fig <- ggplotly(p)
+fig 
+```
+
+
+### 12.動態用年度呈現來看gdp成長率
+gapminder
+Gapminder有關預期壽命，人均GDP和各國人口的數據的摘錄。
+```{r}
+library(plotly)
+library(gapminder)
+fig9 <- ggplot(gapminder, aes(gdpPercap, lifeExp, color = continent)) +
+    geom_point(aes(size = pop, frame = year, ids = country)) +
+    scale_x_log10() 
+fig <- ggplotly(fig9)
+fig
+#Kuwait gdpPercap 太大刪去
+gapminder_ <- gapminder[gapminder$country!="Kuwait",]
+fig9_ <- ggplot(gapminder_, aes(gdpPercap, lifeExp, color = continent))+
+    geom_point(aes(size = pop, frame = year, ids = country))
+fig_ <- ggplotly(fig9_)
+fig_
+```
+
+
+### 13.用顏色獲得數量比，可以即時獲得分區量
+### 用filter找出wt>5的前哨動作
+mtcars
+汽車趨勢汽車路試
+數據摘自1974年《美國汽車趨勢》雜誌，其中包括油耗以及32輛汽車（1973–74年型號）的汽車設計和性能的10個方面。
+```{r}
+library(plotly)
+#plot_ly(mpg, x = mpg$fl, y =  mpg$drv) 
+plot_ly(mpg, x = mpg$displ , y = mpg$cty, z = mpg$hwy,color = mpg$trans,  type = "scatter3d", mode = "markers")
+plot_ly(mtcars, x = ~mpg, y = ~wt)  # 重量和每加侖跑的距離
+#mtcars %>% filter(wt>5) %>% plot_ly(x = ~mpg, y = ~wt)
+```
+
+
+### 14. 使用分組功能，得到upper fence值。
+### 註：upper fence不等於 max
+midwest
+中西部人口
+中西部各縣的人口信息
+```{r}
+library(plotly)
+fig <- plot_ly(midwest, x = ~percollege, color = ~state, type = "box")
+fig
+```
+
+
+### 用 cor 製作一個相關矩陣
+
+```{r M}
+M<-cor(mtcars)
+head(round(M,2))
+```
+
+
+### 15-1. 使用圖形展示相關程度
+
+```{r}
+library(corrplot)
+corrplot(M, method="circle")
+```
+
+
+### 15-2. 方形的相關程度可以看出更多
+
+```{r}
+corrplot(M, method="color")
+```
+
+
+### 15-3. 習慣用數字的相關矩陣，可以用數字呈現
+
+```{r}
+corrplot(M, method="number")
+```
+
+
+### 16-1. 找出相關達到顯著的(X代表未達到顯著)之1
+
+```{r}
+res1 <- cor.mtest(mtcars, conf.level = .99)
+corrplot(M, p.mat = res1$p, sig.level = .05)
+```
+
+
+### 16-2. 顯著的越來越少(X代表未顯著變多了)之2
+
+```{r}
+corrplot(M, p.mat = res1$p, sig.level = .0005)
+```
+
+
+### 16-3. 請注意看左方相關高的4*4，有相當高相關_之3
+
+```{r}
+corrplot(M, p.mat = res1$p, sig.level = .000005)
+```
+
+
+### 17. 如果多下一個指令讓變數分成三群，就會出現如此
+
+```{r}
+corrplot(M, order = "hclust", addrect = 3)
+```
+
+兩個一起看很棒
